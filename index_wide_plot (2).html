@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Power Triangle · Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --glass-bg: rgba(255,255,255,0.12);
+      --glass-bg-strong: rgba(255,255,255,0.18);
+      --glass-border: rgba(255,255,255,0.28);
+      --glass-border-subtle: rgba(255,255,255,0.14);
+      --glass-shadow: 0 8px 40px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.18);
+      --glass-shadow-lg: 0 20px 60px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.22);
+      --text-primary: rgba(255,255,255,0.96);
+      --text-secondary: rgba(255,255,255,0.62);
+      --text-tertiary: rgba(255,255,255,0.38);
+      --accent: #3b82f6;
+      --accent-glow: rgba(59,130,246,0.45);
+      --accent-2: #8b5cf6;
+      --danger: #f87171;
+      --danger-glow: rgba(248,113,113,0.4);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 24px;
+      --radius-xl: 32px;
+      --blur: blur(28px) saturate(180%);
+      --transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0e1a;
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Ambient background ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(59,130,246,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 80% 85%, rgba(139,92,246,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(16,185,129,0.08) 0%, transparent 60%),
+        linear-gradient(135deg, #050a15 0%, #0d1220 40%, #080d1a 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 0 12px;
+    }
+
+    .header-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: var(--blur);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .header-eyebrow span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent-glow);
+      animation: pulse-dot 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:0.5; transform:scale(0.8); }
+    }
+
+    header h1 {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.6) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: clamp(14px, 1.5vw, 17px);
+      font-weight: 400;
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Main grid ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── Glass Card ── */
+    .card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--glass-shadow);
+      padding: 22px;
+      margin-bottom: 18px;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      pointer-events: none;
+    }
+
+    .card:hover {
+      border-color: rgba(255,255,255,0.36);
+      box-shadow: var(--glass-shadow-lg);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .icon-blue { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.35); }
+    .icon-purple { background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.35); }
+
+    h2 { font-size: 15px; font-weight: 600; margin-bottom: 18px; }
+
+    /* ── Form fields ── */
+    label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 7px;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      outline: none;
+      transition: var(--transition);
+      font-family: inherit;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    input::placeholder { color: var(--text-tertiary); }
+
+    input:focus, select:focus {
+      background: rgba(255,255,255,0.11);
+      border-color: rgba(59,130,246,0.6);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.18), 0 0 12px rgba(59,130,246,0.12);
+    }
+
+    select option { background: #1a2035; color: #fff; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* ── Preview ── */
+    .preview {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin: 16px 0;
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 14px;
+      color: var(--text-secondary);
+    }
+
+    .preview-grid span b { color: var(--text-primary); font-weight: 600; }
+
+    .error { color: var(--danger); font-weight: 600; font-size: 13px; }
+    .warning { color: var(--warning); font-weight: 500; margin-top: 8px; font-size: 12px; }
+
+    /* ── Buttons ── */
+    button {
+      border: 0;
+      border-radius: var(--radius-sm);
+      padding: 11px 16px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: var(--transition);
+      letter-spacing: -0.01em;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.38), 0 1px 3px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      box-shadow: 0 6px 24px rgba(59,130,246,0.52), 0 2px 6px rgba(0,0,0,0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.28);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 7px 13px;
+      font-size: 12px;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-primary);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      padding: 6px 10px;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+
+    .btn-danger:hover {
+      background: rgba(248,113,113,0.12);
+      border-color: rgba(248,113,113,0.3);
+    }
+
+    .btn-correction {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(139,92,246,0.3) 0%, rgba(109,40,217,0.3) 100%);
+      color: var(--text-primary);
+      border: 1px solid rgba(139,92,246,0.45);
+      box-shadow: 0 4px 16px rgba(139,92,246,0.2);
+    }
+
+    .btn-correction:hover {
+      background: linear-gradient(135deg, rgba(139,92,246,0.45) 0%, rgba(109,40,217,0.45) 100%);
+      box-shadow: 0 6px 24px rgba(139,92,246,0.32);
+      transform: translateY(-1px);
+    }
+
+    /* ── Plot section ── */
+    .plot-section {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) 256px;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .plot-card {
+      padding: 16px;
+      overflow-x: auto;
+      min-height: 580px;
+    }
+
+    svg {
+      display: block;
+      margin: auto;
+      border-radius: 16px;
+    }
+
+    .notation-card {
+      min-height: 580px;
+      max-height: 580px;
+      overflow-y: auto;
+      padding: 18px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.15) transparent;
+    }
+
+    .notation-card::-webkit-scrollbar { width: 4px; }
+    .notation-card::-webkit-scrollbar-track { background: transparent; }
+    .notation-card::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
+
+    .notation-help {
+      color: var(--text-tertiary);
+      font-size: 11.5px;
+      line-height: 1.5;
+      margin: -10px 0 14px;
+    }
+
+    .notation-item {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-left-width: 3px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      background: rgba(255,255,255,0.05);
+      transition: var(--transition);
+    }
+
+    .notation-item:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.18);
+    }
+
+    .notation-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .notation-type {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      text-transform: capitalize;
+      background: rgba(255,255,255,0.08);
+      padding: 2px 7px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .notation-values {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px 10px;
+      font-size: 11.5px;
+      color: var(--text-tertiary);
+    }
+
+    .notation-values b { color: var(--text-secondary); font-weight: 600; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .toolbar h2 { margin: 0; }
+
+    .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ── Table ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.12) transparent;
+    }
+
+    .table-wrap::-webkit-scrollbar { height: 4px; }
+    .table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      min-width: 760px;
+    }
+
+    thead tr {
+      background: rgba(255,255,255,0.06);
+    }
+
+    th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      transition: var(--transition);
+    }
+
+    tbody tr:hover td {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-primary);
+    }
+
+    tbody tr:last-child td { border-bottom: 0; }
+
+    .legend-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    /* ── Section divider ── */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      margin: 4px 0 18px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1200px) {
+      .plot-section {
+        grid-template-columns: 1fr;
+      }
+      .notation-card { min-height: auto; max-height: 360px; }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .page { padding: 18px 12px 36px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .toolbar { flex-direction: column; align-items: flex-start; }
+      header h1 { font-size: 26px; }
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(18px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+
+    .card { animation: fadeUp 0.4s cubic-bezier(0.4,0,0.2,1) both; }
+    header { animation: fadeUp 0.35s cubic-bezier(0.4,0,0.2,1) both; }
+
+    .card:nth-child(1) { animation-delay:0.05s; }
+    .card:nth-child(2) { animation-delay:0.1s; }
+    .card:nth-child(3) { animation-delay:0.15s; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-eyebrow"><span></span>EEE Lab Tool</div>
+      <h1>Power Triangle Calculator</h1>
+      <p>Create, overlay, compare, and export power triangles for electrical lab data analysis.</p>
+    </header>
+
+    <main class="layout">
+      <!-- ── Left Panel ── -->
+      <section>
+        <div class="card">
+          <div class="card-title">
+            <div class="card-title-icon icon-blue">⚡</div>
+            Add Power Triangle
+          </div>
+
+          <div class="field">
+            <label for="name">Triangle Name</label>
+            <input id="name" type="text" value="Load 1" />
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="pValue">P — Real Power (W)</label>
+              <input id="pValue" type="number" step="any" value="500" />
+            </div>
+            <div class="field">
+              <label for="qValue">Q — Reactive (VAR)</label>
+              <input id="qValue" type="number" step="any" placeholder="Optional" />
+            </div>
+            <div class="field">
+              <label for="sValue">S — Apparent (VA)</label>
+              <input id="sValue" type="number" step="any" placeholder="Optional" />
+            </div>
+            <div class="field">
+              <label for="pfValue">Power Factor</label>
+              <input id="pfValue" type="number" step="any" value="0.8" placeholder="Optional" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="loadType">Load Type</label>
+            <select id="loadType">
+              <option value="lagging">Lagging / Inductive</option>
+              <option value="leading">Leading / Capacitive</option>
+              <option value="unity">Unity / Resistive</option>
+            </select>
+          </div>
+
+          <div id="preview" class="preview"></div>
+
+          <button class="btn-primary" onclick="addTriangle()">+ Add to Plot</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <div class="card-title-icon icon-purple">⚙️</div>
+            Power Factor Correction
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="corrP">P (W)</label>
+              <input id="corrP" type="number" step="any" value="500" />
+            </div>
+            <div class="field">
+              <label for="initialPF">Initial PF</label>
+              <input id="initialPF" type="number" step="any" value="0.75" />
+            </div>
+            <div class="field">
+              <label for="desiredPF">Desired PF</label>
+              <input id="desiredPF" type="number" step="any" value="0.95" />
+            </div>
+            <div class="field">
+              <label for="corrType">Load Type</label>
+              <select id="corrType">
+                <option value="lagging">Lagging</option>
+                <option value="leading">Leading</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn-correction" onclick="addCorrectionTriangles()">Add Before / After Triangles</button>
+        </div>
+      </section>
+
+      <!-- ── Right Panel ── -->
+      <section>
+        <div class="plot-section">
+          <div class="card plot-card">
+            <svg id="plot" width="950" height="540"></svg>
+          </div>
+
+          <div class="card notation-card">
+            <div class="card-title" style="margin-bottom:10px;">
+              <div class="card-title-icon icon-blue">📐</div>
+              Legend
+            </div>
+            <p class="notation-help">Identify each triangle by color and review its computed values.</p>
+            <div class="section-divider"></div>
+            <div id="notationList"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="toolbar">
+            <div class="card-title" style="margin-bottom:0;">
+              <div class="card-title-icon icon-blue">📊</div>
+              Triangle Data Table
+            </div>
+            <div class="toolbar-actions">
+              <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+              <button class="btn-secondary" onclick="downloadSVG()">Export SVG</button>
+              <button class="btn-outline" onclick="clearTriangles()">Clear All</button>
+            </div>
+          </div>
+          <div class="section-divider"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Show</th>
+                  <th>Name</th>
+                  <th>P</th>
+                  <th>Q</th>
+                  <th>S</th>
+                  <th>PF</th>
+                  <th>Type</th>
+                  <th>θ</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const colors = ["#60a5fa","#f87171","#34d399","#a78bfa","#fb923c","#22d3ee","#f472b6","#facc15"];
+    let triangles = [];
+
+    function n(value) { const num = Number(value); return Number.isFinite(num) ? num : NaN; }
+
+    function round(value, digits = 3) {
+      if (!Number.isFinite(value)) return "—";
+      return Number(value).toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+    }
+
+    function getFormData() {
+      return {
+        name: document.getElementById("name").value.trim(),
+        P: document.getElementById("pValue").value,
+        Q: document.getElementById("qValue").value,
+        S: document.getElementById("sValue").value,
+        PF: document.getElementById("pfValue").value,
+        type: document.getElementById("loadType").value
+      };
+    }
+
+    function calculatePowerTriangle(data) {
+      let p = n(data.P), q = n(data.Q), s = n(data.S), pf = n(data.PF);
+      const hasP = Number.isFinite(p) && p >= 0;
+      const hasQ = Number.isFinite(q);
+      const hasS = Number.isFinite(s) && s >= 0;
+      const hasPF = Number.isFinite(pf) && pf >= 0 && pf <= 1;
+      const sign = data.type === "leading" ? -1 : data.type === "lagging" ? 1 : 0;
+      let warning = "";
+
+      if (!hasP) return { error: "Enter a valid positive or zero value for real power P." };
+
+      if (data.type === "unity") {
+        q = 0; s = p; pf = 1;
+      } else if (hasQ) {
+        q = sign * Math.abs(q);
+        s = Math.sqrt(p * p + q * q);
+        pf = s === 0 ? 1 : p / s;
+      } else if (hasPF) {
+        if (pf === 0 && p > 0) return { error: "PF cannot be zero when P is positive." };
+        s = pf === 0 ? 0 : p / pf;
+        q = sign * Math.sqrt(Math.max(s * s - p * p, 0));
+      } else if (hasS) {
+        if (s < p) return { error: "Apparent power S must be ≥ real power P." };
+        q = sign * Math.sqrt(Math.max(s * s - p * p, 0));
+        pf = s === 0 ? 1 : p / s;
+      } else {
+        return { error: "Enter P and at least one of Q, S, or PF." };
+      }
+
+      if (hasS) {
+        const calcS = Math.sqrt(p * p + q * q);
+        if (Math.abs(s - calcS) > Math.max(0.05 * Math.abs(s), 0.1)) {
+          warning = "Input S is inconsistent with P and Q/PF. Plotted calculated values.";
+        }
+      }
+
+      const theta = Math.atan2(q, p) * 180 / Math.PI;
+      return { P: p, Q: q, S: s, PF: pf, theta, type: data.type, warning };
+    }
+
+    function updatePreview() {
+      const preview = document.getElementById("preview");
+      const result = calculatePowerTriangle(getFormData());
+      if (result.error) {
+        preview.innerHTML = `<span class="error">${result.error}</span>`;
+        return;
+      }
+      preview.innerHTML = `
+        <div class="preview-grid">
+          <span><b>P =</b> ${round(result.P)} W</span>
+          <span><b>Q =</b> ${round(result.Q)} VAR</span>
+          <span><b>S =</b> ${round(result.S)} VA</span>
+          <span><b>PF =</b> ${round(result.PF, 4)}</span>
+          <span><b>θ =</b> ${round(result.theta, 2)}°</span>
+          <span style="color:var(--text-tertiary)">${result.type}</span>
+        </div>
+        ${result.warning ? `<div class="warning">⚠ ${result.warning}</div>` : ""}
+      `;
+    }
+
+    function addTriangle() {
+      const data = getFormData();
+      const result = calculatePowerTriangle(data);
+      if (result.error) { alert(result.error); return; }
+      triangles.push({
+        id: Date.now() + Math.random(),
+        name: data.name || `Load ${triangles.length + 1}`,
+        color: colors[triangles.length % colors.length],
+        visible: true,
+        ...result
+      });
+      document.getElementById("name").value = `Load ${triangles.length + 1}`;
+      render();
+    }
+
+    function addCorrectionTriangles() {
+      const P = n(document.getElementById("corrP").value);
+      const initialPF = n(document.getElementById("initialPF").value);
+      const desiredPF = n(document.getElementById("desiredPF").value);
+      const type = document.getElementById("corrType").value;
+
+      if (!Number.isFinite(P) || P <= 0) { alert("Enter a valid positive value for P."); return; }
+      if (!(initialPF > 0 && initialPF <= 1 && desiredPF > 0 && desiredPF <= 1)) {
+        alert("Power factor values must be > 0 and ≤ 1."); return;
+      }
+
+      const sign = type === "leading" ? -1 : 1;
+      const S1 = P / initialPF, Q1 = sign * Math.sqrt(Math.max(S1*S1 - P*P, 0));
+      const S2 = P / desiredPF, Q2 = sign * Math.sqrt(Math.max(S2*S2 - P*P, 0));
+      const Qc = Q1 - Q2;
+      const msg = Qc > 0 ? "Capacitive compensation required" : "Inductive compensation required";
+
+      [["Before Correction", P, Q1, S1, initialPF], ["After Correction", P, Q2, S2, desiredPF]].forEach(([name, p, q, s, pf]) => {
+        triangles.push({ id: Date.now() + Math.random(), name, P: p, Q: q, S: s, PF: pf,
+          theta: Math.atan2(q, p) * 180 / Math.PI, type,
+          color: colors[triangles.length % colors.length], visible: true });
+      });
+      render();
+      alert(`Required Qc = ${round(Qc)} VAR. ${msg}.`);
+    }
+
+    function toggleTriangle(id) { triangles = triangles.map(t => t.id === id ? {...t, visible: !t.visible} : t); render(); }
+    function deleteTriangle(id) { triangles = triangles.filter(t => t.id !== id); render(); }
+    function clearTriangles() { triangles = []; render(); }
+
+    function drawPlot() {
+      const svg = document.getElementById("plot");
+      svg.innerHTML = "";
+
+      // Background fill for plot area
+      const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      bgRect.setAttribute("width", "950"); bgRect.setAttribute("height", "540");
+      bgRect.setAttribute("rx", "16"); bgRect.setAttribute("fill", "rgba(10,14,26,0.7)");
+      svg.appendChild(bgRect);
+
+      const width = 950, height = 540;
+      const visible = triangles.filter(t => t.visible);
+      const maxAbs = Math.max(1, ...visible.flatMap(t => [Math.abs(t.P), Math.abs(t.Q), Math.abs(t.S)]));
+      const pad = maxAbs * 0.18;
+      const minX = -pad, maxX = maxAbs + pad, minY = -maxAbs - pad, maxY = maxAbs + pad;
+
+      function sx(x) { return ((x - minX) / (maxX - minX)) * width; }
+      function sy(y) { return height - ((y - minY) / (maxY - minY)) * height; }
+
+      function el(tag, attrs) {
+        const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+        svg.appendChild(e); return e;
+      }
+
+      function line(x1, y1, x2, y2, stroke, sw = 1.5, dash = "") {
+        el("line", { x1, y1, x2, y2, stroke, "stroke-width": sw, ...(dash ? {"stroke-dasharray": dash} : {}) });
+      }
+
+      function txt(x, y, content, fill, size = 12, weight = "500", anchor = "start") {
+        const t = el("text", { x, y, fill, "font-size": size, "font-weight": weight, "text-anchor": anchor, "font-family": "Inter, sans-serif" });
+        t.textContent = content;
+      }
+
+      // Grid lines
+      const gridSteps = 5;
+      for (let i = 0; i <= gridSteps; i++) {
+        const gx = minX + (maxX - minX) * i / gridSteps;
+        const gy = minY + (maxY - minY) * i / gridSteps;
+        line(sx(gx), 0, sx(gx), height, "rgba(255,255,255,0.04)", 1);
+        line(0, sy(gy), width, sy(gy), "rgba(255,255,255,0.04)", 1);
+      }
+
+      // Axes
+      line(sx(minX), sy(0), sx(maxX), sy(0), "rgba(255,255,255,0.25)", 1.5);
+      line(sx(0), sy(minY), sx(0), sy(maxY), "rgba(255,255,255,0.25)", 1.5);
+
+      txt(sx(maxX) - 130, sy(0) - 12, "Real Power P →", "rgba(255,255,255,0.45)", 12, "600");
+      txt(sx(0) + 10, sy(maxY) + 20, "↑ Reactive Q", "rgba(255,255,255,0.45)", 12, "600");
+      txt(sx(0) + 8, sy(0) - 8, "0", "rgba(255,255,255,0.3)", 11);
+
+      if (visible.length === 0) {
+        txt(width / 2, height / 2 + 6, "Add a triangle to start plotting", "rgba(255,255,255,0.25)", 15, "500", "middle");
+        return;
+      }
+
+      visible.forEach(t => {
+        const x0 = sx(0), y0 = sy(0), xP = sx(t.P), yP = sy(0), xQ = sx(t.P), yQ = sy(t.Q);
+
+        // Glow polygon fill
+        const poly = el("polygon", { points: `${x0},${y0} ${xP},${yP} ${xQ},${yQ}`, fill: t.color, opacity: "0.1" });
+
+        // Triangle edges with glow
+        const edges = [[x0,y0,xP,yP],[xP,yP,xQ,yQ],[x0,y0,xQ,yQ]];
+        edges.forEach(([a,b,c,d]) => {
+          // glow
+          el("line", { x1:a, y1:b, x2:c, y2:d, stroke:t.color, "stroke-width":"6", opacity:"0.18", "stroke-linecap":"round" });
+          // main
+          el("line", { x1:a, y1:b, x2:c, y2:d, stroke:t.color, "stroke-width":"2.2", "stroke-linecap":"round" });
+        });
+
+        // Right angle indicator
+        line(xQ, yQ, xQ, yP, "rgba(255,255,255,0.18)", 1, "4 4");
+
+        // Arc for theta
+        const thetaRad = Math.atan2(t.Q, t.P);
+        const arcR = Math.min(52, Math.max(24, Math.abs(xP - x0) * 0.22));
+        const arcEndX = x0 + arcR * Math.cos(thetaRad);
+        const arcEndY = y0 - arcR * Math.sin(thetaRad);
+        const sweep = t.Q >= 0 ? 0 : 1;
+        el("path", { d: `M ${x0 + arcR} ${y0} A ${arcR} ${arcR} 0 0 ${sweep} ${arcEndX} ${arcEndY}`,
+          fill: "none", stroke: t.color, "stroke-width": "1.5", opacity: "0.7" });
+
+        // Dot at apex
+        el("circle", { cx: xQ, cy: yQ, r: "4", fill: t.color });
+        el("circle", { cx: xQ, cy: yQ, r: "8", fill: t.color, opacity: "0.18" });
+
+        // Label
+        txt(xQ + 10, yQ - 10, t.name, t.color, 12.5, "700");
+      });
+    }
+
+    function renderNotation() {
+      const list = document.getElementById("notationList");
+      const visible = triangles.filter(t => t.visible);
+      if (visible.length === 0) {
+        list.innerHTML = `<p style="color:var(--text-tertiary);font-size:13px;">No visible triangles yet.</p>`;
+        return;
+      }
+      list.innerHTML = visible.map(t => `
+        <div class="notation-item" style="border-left-color:${t.color};">
+          <div class="notation-title">
+            <span style="color:${t.color}">${t.name}</span>
+            <span class="notation-type">${t.type}</span>
+          </div>
+          <div class="notation-values">
+            <span><b>P:</b> ${round(t.P)} W</span>
+            <span><b>Q:</b> ${round(t.Q)} VAR</span>
+            <span><b>S:</b> ${round(t.S)} VA</span>
+            <span><b>PF:</b> ${round(t.PF, 4)}</span>
+            <span><b>θ:</b> ${round(t.theta, 2)}°</span>
+            <span><b>Q:</b> ${t.Q >= 0 ? "+" : "−"}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderTable() {
+      const body = document.getElementById("tableBody");
+      if (triangles.length === 0) {
+        body.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-tertiary);padding:22px;">No triangles added yet.</td></tr>`;
+        return;
+      }
+      body.innerHTML = triangles.map(t => `
+        <tr>
+          <td><button class="btn-outline" onclick="toggleTriangle(${t.id})">${t.visible ? "Hide" : "Show"}</button></td>
+          <td>
+            <span class="legend-dot" style="background:${t.color};box-shadow:0 0 6px ${t.color}80;"></span>
+            <strong style="color:${t.color}">${t.name}</strong>
+          </td>
+          <td>${round(t.P)} W</td>
+          <td>${round(t.Q)} VAR</td>
+          <td>${round(t.S)} VA</td>
+          <td>${round(t.PF, 4)}</td>
+          <td style="text-transform:capitalize">${t.type}</td>
+          <td>${round(t.theta, 2)}°</td>
+          <td><button class="btn-danger" onclick="deleteTriangle(${t.id})">Delete</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function render() { updatePreview(); drawPlot(); renderNotation(); renderTable(); }
+
+    function exportCSV() {
+      if (triangles.length === 0) { alert("No data to export."); return; }
+      const header = ["Name","P (W)","Q (VAR)","S (VA)","PF","Type","Theta (°)"];
+      const rows = triangles.map(t => [t.name,t.P,t.Q,t.S,t.PF,t.type,t.theta]);
+      const csv = [header,...rows].map(r => r.join(",")).join("\n");
+      const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([csv],{type:"text/csv"})), download: "power-triangle-data.csv" });
+      a.click();
+    }
+
+    function downloadSVG() {
+      const svg = document.getElementById("plot");
+      const clone = svg.cloneNode(true);
+
+      // ── White background rect (replace dark one) ──
+      const bgRect = clone.querySelector("rect");
+      if (bgRect) {
+        bgRect.setAttribute("fill", "#ffffff");
+        bgRect.setAttribute("rx", "0");
+      }
+
+      // ── Re-colour grid lines and axes to light-mode tones ──
+      const allLines = clone.querySelectorAll("line");
+      allLines.forEach(l => {
+        const stroke = l.getAttribute("stroke") || "";
+        // grid lines were drawn with rgba(255,255,255,0.04)
+        if (stroke.includes("rgba(255,255,255,0.04)")) {
+          l.setAttribute("stroke", "rgba(0,0,0,0.07)");
+        }
+        // axes were rgba(255,255,255,0.25)
+        if (stroke.includes("rgba(255,255,255,0.25)")) {
+          l.setAttribute("stroke", "rgba(0,0,0,0.35)");
+        }
+        // right-angle dashed indicators were rgba(255,255,255,0.18)
+        if (stroke.includes("rgba(255,255,255,0.18)")) {
+          l.setAttribute("stroke", "rgba(0,0,0,0.22)");
+        }
+      });
+
+      // ── Re-colour axis / empty-state text labels ──
+      const allTexts = clone.querySelectorAll("text");
+      allTexts.forEach(t => {
+        const fill = t.getAttribute("fill") || "";
+        if (fill.includes("rgba(255,255,255,")) {
+          // map white-alpha shades to equivalent dark-alpha shades
+          t.setAttribute("fill", fill
+            .replace("rgba(255,255,255,0.45)", "rgba(0,0,0,0.55)")
+            .replace("rgba(255,255,255,0.3)",  "rgba(0,0,0,0.4)")
+            .replace("rgba(255,255,255,0.25)", "rgba(0,0,0,0.35)")
+          );
+        }
+      });
+
+      // ── Ensure xmlns is present for standalone SVG ──
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+
+      const source = new XMLSerializer().serializeToString(clone);
+      const a = Object.assign(document.createElement("a"), {
+        href: URL.createObjectURL(new Blob([source], { type: "image/svg+xml;charset=utf-8" })),
+        download: "power-triangle-plot.svg"
+      });
+      a.click();
+    }
+
+    document.querySelectorAll("input, select").forEach(el => {
+      el.addEventListener("input", updatePreview);
+      el.addEventListener("change", updatePreview);
+    });
+
+    render();
+  </script>
+</body>
+</html>
